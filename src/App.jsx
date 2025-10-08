@@ -1,35 +1,46 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import { ethers } from "ethers";
+import IssueCertificate from "./components/IssueCertificate";
+import VerifyCertificate from "./components/VerifyCertificate";
+import abi from "./contract/CertificateRegistry.json";
 
-function App() {
-  const [count, setCount] = useState(0)
+const contractAddress = "YOUR_DEPLOYED_CONTRACT_ADDRESS";
+
+export default function App() {
+  const [account, setAccount] = useState(null);
+
+  async function connectWallet() {
+    if (!window.ethereum) return alert("Install MetaMask");
+    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+    setAccount(accounts[0]);
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div className="min-h-screen bg-gray-900 text-white p-8">
+      <h1 className="text-4xl font-bold text-center mb-8 text-blue-400">
+        Academic Certificate DApp
+      </h1>
 
-export default App
+      {!account ? (
+        <div className="flex justify-center">
+          <button
+            onClick={connectWallet}
+            className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold"
+          >
+            Connect Wallet
+          </button>
+        </div>
+      ) : (
+        <>
+          <p className="text-center text-green-400 mb-6">
+            Connected: {account}
+          </p>
+          <div className="grid md:grid-cols-2 gap-8">
+            <IssueCertificate contractAddress={contractAddress} />
+            <VerifyCertificate contractAddress={contractAddress} />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
