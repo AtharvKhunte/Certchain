@@ -19,8 +19,9 @@ const AdminPanel = () => {
   };
 
   const handleTextChange = (e) => {
-    setCertInput(e.target.value);
-    setCertHash(hashText(e.target.value));
+    const value = e.target.value;
+    setCertInput(value);
+    setCertHash(hashText(value));
   };
 
   const issueCertificate = async () => {
@@ -28,10 +29,10 @@ const AdminPanel = () => {
       const contract = await initContract();
       const tx = await contract.issueCertificate(student, certHash, metaURI);
       await tx.wait();
-      alert("Certificate issued successfully!");
+      alert("✅ Certificate issued successfully!");
     } catch (err) {
       console.error(err);
-      alert("Error issuing certificate");
+      alert("❌ Error issuing certificate");
     }
   };
 
@@ -40,60 +41,64 @@ const AdminPanel = () => {
       const contract = await initContract();
       const tx = await contract.revokeCertificate(certHash);
       await tx.wait();
-      alert("Certificate revoked successfully!");
+      alert("🚫 Certificate revoked successfully!");
     } catch (err) {
       console.error(err);
-      alert("Error revoking certificate");
+      alert("❌ Error revoking certificate");
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-white shadow-md rounded mt-8">
-      <h2 className="text-2xl font-bold mb-4 text-center">Admin Panel</h2>
+    <div className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-xl font-semibold mb-4">Admin Panel</h2>
 
       <input
-        className="border p-2 mb-3 w-full rounded"
-        placeholder="Student Address"
+        className="border p-2 w-full mb-3 rounded"
+        placeholder="Student Wallet Address"
         value={student}
         onChange={(e) => setStudent(e.target.value)}
       />
 
       <input
-        className="border p-2 mb-3 w-full rounded"
-        placeholder="Certificate Name/ID"
+        className="border p-2 w-full mb-3 rounded"
+        placeholder="Certificate Name or ID"
         value={certInput}
         onChange={handleTextChange}
       />
 
       <input
-        className="mb-3"
         type="file"
+        className="border p-2 w-full mb-3 rounded"
         onChange={handleFileChange}
       />
 
       <input
-        className="border p-2 mb-3 w-full rounded"
-        placeholder="Meta URI"
+        className="border p-2 w-full mb-3 rounded"
+        placeholder="Meta URI (IPFS link or metadata)"
         value={metaURI}
         onChange={(e) => setMetaURI(e.target.value)}
       />
 
-      <div className="flex gap-4 mb-3">
+      <div className="flex justify-between">
         <button
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           onClick={issueCertificate}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
         >
           Issue Certificate
         </button>
         <button
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
           onClick={revokeCertificate}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
         >
-          Revoke Certificate
+          Revoke
         </button>
       </div>
 
-      <p className="mt-4 font-mono">Current Certificate Hash: {certHash}</p>
+      {certHash && (
+        <p className="text-gray-600 text-sm mt-4 break-all">
+          <strong>Certificate Hash:</strong> {certHash}
+        </p>
+      )}
     </div>
   );
 };
