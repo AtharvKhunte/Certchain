@@ -1,21 +1,21 @@
+// src/pages/AdminPanel.jsx
 import React, { useState } from "react";
-import { initContract, hashText } from "../utils/web3";
+import { initContract, hashText, isAddress } from "../utils/web3";
 import { getFileHash } from "../utils/hash";
 
 const AdminPanel = () => {
   const [student, setStudent] = useState("");
   const [certInput, setCertInput] = useState("");
-  const [file, setFile] = useState(null);
   const [metaURI, setMetaURI] = useState("");
   const [certHash, setCertHash] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = async (e) => {
     const uploadedFile = e.target.files[0];
-    if (uploadedFile) {
-      const hash = await getFileHash(uploadedFile);
-      setFile(uploadedFile);
-      setCertHash(hash);
-    }
+    if (!uploadedFile) return;
+    const hash = await getFileHash(uploadedFile);
+    setCertHash(hash);
+    setCertInput(""); // clear input if file provided
   };
 
   const handleTextChange = (e) => {
@@ -25,80 +25,66 @@ const AdminPanel = () => {
   };
 
   const issueCertificate = async () => {
+    if (!isAddress(student)) {
+      alert("Please enter a valid Ethereum address for the student.");
+      return;
+    }
+    if (!certHash) {
+      alert("Please provide certificate text or upload a file to compute the hash.");
+      return;
+    }
+
     try {
+      setLoading(true);
       const contract = await initContract();
-      const tx = await contract.issueCertificate(student, certHash, metaURI);
+      const tx = await contract.issueCertificate(student, certHash, metaURI || "");
       await tx.wait();
       alert("✅ Certificate issued successfully!");
     } catch (err) {
       console.error(err);
-      alert("❌ Error issuing certificate");
+      alert("❌ Error issuing certificate. See console for details.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const revokeCertificate = async () => {
+    if (!certHash) {
+      alert("Provide a certificate hash to revoke.");
+      return;
+    }
     try {
+      setLoading(true);
       const contract = await initContract();
       const tx = await contract.revokeCertificate(certHash);
       await tx.wait();
-      alert("🚫 Certificate revoked successfully!");
+      alert("🚫 Certificate revoked.");
     } catch (err) {
       console.error(err);
-      alert("❌ Error revoking certificate");
+      alert("❌ Error revoking certificate.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4">Admin Panel</h2>
+    <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow">
+      <h2 className="text-2xl font-semibold mb-4">Admin Panel</h2>
 
-      <input
-        className="border p-2 w-full mb-3 rounded"
-        placeholder="Student Wallet Address"
-        value={student}
-        onChange={(e) => setStudent(e.target.value)}
-      />
+      <input className="w-full p-3 mb-3 border rounded" placeholder="Student wallet address (0x...)" value={student} onChange={(e) => setStudent(e.target.value)} />
 
-      <input
-        className="border p-2 w-full mb-3 rounded"
-        placeholder="Certificate Name or ID"
-        value={certInput}
-        onChange={handleTextChange}
-      />
+      <input className="w-full p-3 mb-3 border rounded" placeholder="Certificate text / ID (or upload file below)" value={certInput} onChange={handleTextChange} />
 
-      <input
-        type="file"
-        className="border p-2 w-full mb-3 rounded"
-        onChange={handleFileChange}
-      />
+      <input type="file" className="w-full mb-3" onChange={handleFileChange} />
 
-      <input
-        className="border p-2 w-full mb-3 rounded"
-        placeholder="Meta URI (IPFS link or metadata)"
-        value={metaURI}
-        onChange={(e) => setMetaURI(e.target.value)}
-      />
+      <input className="w-full p-3 mb-3 border rounded" placeholder="Meta URI (optional)" value={metaURI} onChange={(e) => setMetaURI(e.target.value)} />
 
-      <div className="flex justify-between">
-        <button
-          onClick={issueCertificate}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
-        >
-          Issue Certificate
-        </button>
-        <button
-          onClick={revokeCertificate}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-        >
-          Revoke
-        </button>
+      <p className="text-sm text-gray-600 break-all mb-4"><strong>Current Hash:</strong> {certHash || "(none)"}</p>
+
+      <div className="flex gap-3">
+        <button disabled={loading} onClick={issueCertificate} className="flex-1 bg-indigo-600 text-white py-3 rounded hover:bg-indigo-700">Issue Certificate</button>
+        <button disabled={loading} onClick={revokeCertificate} className="flex-1 bg-red-600 text-white py-3 rounded hover:bg-red-700">Revoke</button>
       </div>
-
-      {certHash && (
-        <p className="text-gray-600 text-sm mt-4 break-all">
-          <strong>Certificate Hash:</strong> {certHash}
-        </p>
-      )}
     </div>
   );
 };

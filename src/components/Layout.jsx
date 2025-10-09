@@ -1,17 +1,16 @@
-import React, { useState } from "react";
+// src/components/Layout.jsx
+import React from "react";
 import Sidebar from "./Sidebar";
-import AdminPanel from "../pages/AdminPanel";
-import StudentPanel from "../pages/StudentPanel";
+import Topbar from "./Topbar";
 
-const Layout = () => {
-  const [activePage, setActivePage] = useState("admin");
-
+const Layout = ({ children }) => {
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar activePage={activePage} setActivePage={setActivePage} />
-      <main className="flex-1 p-8">
-        {activePage === "admin" ? <AdminPanel /> : <StudentPanel />}
-      </main>
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <Topbar />
+        <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+      </div>
     </div>
   );
 };
