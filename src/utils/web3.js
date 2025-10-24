@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import CertificateRegistryABI from "../contract/CertificateRegistryABI.json";
 
 // Replace with your deployed contract address
-export const CONTRACT_ADDRESS = "0x8990803c35102137f0e40d53309add6831e92655";
+export const CONTRACT_ADDRESS = "0x02b88359ac8427f45e9589390bd5202e980051f7";
 
 let provider;
 let signer;
